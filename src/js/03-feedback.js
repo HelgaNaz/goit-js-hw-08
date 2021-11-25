@@ -1,45 +1,50 @@
 import throttle from 'lodash.throttle';
-import { debounce } from 'debounce';
 
+const STORAGE_KEY = "feedback-form-state";
 const form = document.querySelector(".feedback-form");
-const formInput = document.querySelector("input");
-const formTextarea = document.querySelector("textarea");
-const formMessage = {email: "", message: ""};
+
+const formData = {};
+update();
 
 form.addEventListener("input", throttle(saveFunction, 500));
 
 function saveFunction(event) {
-    
-    if (event.target === formInput) {
-        formMessage.email = event.target.value;
-    }
-    else if (event.target === formTextarea) {
-        formMessage.message = event.target.value;
-    }
-
-    localStorage.setItem("feedback-form-state", JSON.stringify(formMessage));
-    console.log("SaveMessage", formMessage);
-
+    formData[event.target.name] = event.target.value;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
 }
-const localSave = JSON.parse(localStorage.getItem("feedback-form-state"));
-
-document.addEventListener("DOMContentLoaded", update())
 
 function update() {
-    formInput.value = localSave?.email || "";
-    formTextarea.value = localSave?.message || "";
-    console.log(localSave);
+    const localData = JSON.parse(localStorage.getItem(STORAGE_KEY));
 
+    if (localData) {
+        Object.entries(localData).forEach(([name, value]) => {
+            form.elements[name].value = value;
+            formData[name] = value;
+        });
+  }  
 }
 
-form.addEventListener("submit", submitFunction);
+form.addEventListener("submit", onSubmit);
 
-function submitFunction(event) {
+function onSubmit(event) {
     event.preventDefault();
-   
-    console.log("SubmitMessage", formMessage);
+    console.log("Отправка формы", formData);
     event.target.reset();
-    localStorage.removeItem("feedback-form-state");
+    localStorage.removeItem(STORAGE_KEY);
 }
 
+
+
+// Пример без объекта
+// document.addEventListener("DOMContentLoaded", function() { 
+
+//     document.querySelectorAll('textarea, input').forEach(function(elem) {
+      
+//         if(elem.value === '') elem.value = localStorage.getItem(elem.name, elem.value);
+       
+//         elem.addEventListener('input', function() {
+//             localStorage.setItem(elem.name, elem.value);
+//         })
+//     })
+// });
 
